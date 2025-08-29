@@ -130,8 +130,6 @@ notes() {
                 ;;
         esac
 }
-alias dotfiles='git --git-dir="${HOME}/repos/1emank/dotfiles" --work-tree=$HOME'
-alias dof=dotfiles
 
 upa_distro() {
         local SUDO="$1"
