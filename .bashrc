@@ -40,7 +40,7 @@ PROMPT_COMMAND=__PROMPT_COMMAND
 case "$HOME" in *termux*) #[USER@HOSTNAME:PWD], [PWD] in termux
         PS1="[${TITLE}\w${RESET}]" ;;
 *)
-        PS1="[${SUCCESS}\u${RESET}@${SUCCESS}\h${RESET}:${TITLE}\w${RESET}]" ;;
+        PS1="[${SUCCESS}\u@\h${RESET}:${TITLE}\w${RESET}]" ;;
 esac
 
 PS1+=`  #[git branch<status>] #if they exist
