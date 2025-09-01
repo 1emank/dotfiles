@@ -39,7 +39,7 @@ return {
             { '<leader>fh', t.help_tags, desc = 'Telescope help tags' },
             { '<leader>fc', t.commands, desc = 'Telescope commands' },
             { '<leader>fr', t.command_history, desc = 'Telescope history' },
-            { '<leader>fg', t.live_grep , desc = 'Telescope live_grep', },
+            { '<leader>fg', t.live_grep, desc = 'Telescope live_grep' },
         },
-    }
+    },
 }

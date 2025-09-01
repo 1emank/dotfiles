@@ -2,7 +2,7 @@ return {
     {
         'folke/trouble.nvim',
         opts = {
-            autoclose = true
+            autoclose = true,
         },
         cmd = 'Trouble',
         keys = {
@@ -47,7 +47,7 @@ return {
             win = {
                 padding = { 0, 0 },
                 border = false,
-                title = false
+                title = false,
             },
         },
         keys = { --what is dis?

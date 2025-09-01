@@ -42,29 +42,26 @@ vim.g.mapleader = ' '
 local function move_win(dir)
     return function()
         local target_win = vim.fn.win_getid(vim.fn.winnr(dir))
-        if target_win ~= 0 then
-            vim.api.nvim_set_current_win(target_win)
-        end
+        if target_win ~= 0 then vim.api.nvim_set_current_win(target_win) end
     end
 end
 
 local function term_to_normal()
     vim.api.nvim_feedkeys(
-        vim.api.nvim_replace_termcodes(
-            '<C-\\><C-n>', true, false, true
-        ), 'n', true )
+        vim.api.nvim_replace_termcodes('<C-\\><C-n>', true, false, true),
+        'n',
+        true
+    )
 end
 
-set_multimode('<C-h>', { 'nvxi', move_win('h'), 'Move to left window'} )
-set_multimode('<C-j>', { 'nvxi', move_win('j'), 'Move to lower window'} )
-set_multimode('<C-k>', { 'nvxi', move_win('k'), 'Move to upper window'} )
-set_multimode('<C-l>', { 'nvxi', move_win('l'), 'Move to right window'} )
+set_multimode('<C-h>', { 'nvxi', move_win('h'), 'Move to left window' })
+set_multimode('<C-j>', { 'nvxi', move_win('j'), 'Move to lower window' })
+set_multimode('<C-k>', { 'nvxi', move_win('k'), 'Move to upper window' })
+set_multimode('<C-l>', { 'nvxi', move_win('l'), 'Move to right window' })
 set_multimode('+', { 'n', '$' }, { 'v', '$h', 'End of line' })
 set_multimode('gd', { 'n', vim.lsp.buf.definition, 'Go to definition' })
 
 set('t', '<Esc>', term_to_normal)
-
-print('Hi from keybinds')
 
 return {
     {
@@ -76,7 +73,7 @@ return {
             win = {
                 padding = { 0, 0 },
                 border = false,
-                title = false
+                title = false,
             },
         },
         keys = { --what is dis?

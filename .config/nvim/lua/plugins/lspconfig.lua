@@ -7,40 +7,43 @@ vim.lsp.enable({
 
 vim.diagnostic.config({
     -- virtual_lines = true,
+    virtual_text = true,
     underline = true,
     signs = true,
 })
-
-print('hi from lspconfig')
 
 return {
     {
         'neovim/nvim-lspconfig',
         enabled = true,
         config = function()
-            require('lspconfig').lua_ls.setup({ settings = { Lua = {
-                runtime = {
-                    version = 'LuaJIT',
-                    special = { reload = 'require' },
+            require('lspconfig').lua_ls.setup({
+                settings = {
+                    Lua = {
+                        runtime = {
+                            version = 'LuaJIT',
+                            special = { reload = 'require' },
+                        },
+                        diagnostics = { globals = { 'vim' } },
+                        workspace = {
+                            -- library = {
+                            --   [vim.fn.stdpath("data") .. "/lazy/neovim/lua"] = true,
+                            --   [vim.fn.stdpath("config")] = true,
+                            -- },
+                            library = vim.api.nvim_get_runtime_file('', true),
+                            maxPreload = 10000,
+                            preloadFileSize = 10000,
+                        },
+                        completion = { callSnippet = 'Replace' },
+                    },
                 },
-                diagnostics = { globals = { 'vim' } },
-                workspace = {
-                    -- library = {
-                    --   [vim.fn.stdpath("data") .. "/lazy/neovim/lua"] = true,
-                    --   [vim.fn.stdpath("config")] = true,
-                    -- },
-                    library = vim.api.nvim_get_runtime_file('', true),
-                    maxPreload = 10000,
-                    preloadFileSize = 10000,
-                },
-                completion = { callSnippet = 'Replace' },
-            }}})
-        end
+            })
+        end,
     },
     {
         'folke/trouble.nvim',
         opts = {
-            autoclose = true
+            autoclose = true,
         },
         cmd = 'Trouble',
         keys = {

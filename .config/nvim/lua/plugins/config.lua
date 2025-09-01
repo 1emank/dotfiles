@@ -32,7 +32,7 @@ vim.o.mouse = 'a'
 vim.o.showmode = true
 
 vim.o.list = true
-vim.opt.fillchars:append { eob = "·" }
+vim.opt.fillchars:append({ eob = '·' })
 vim.opt.listchars = {
     tab = '| ',
     trail = '·',
@@ -44,7 +44,5 @@ vim.o.cmdheight = 1
 
 vim.o.foldmethod = 'indent'
 vim.o.foldenable = false
-
-print('hi from config')
 
 return {}

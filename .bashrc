@@ -58,6 +58,7 @@ PS1+=`  #[git branch<status>] #if they exist
 
 ## RC
 exists() { command -v "$1" >/dev/null 2>&1; }
+launch() { nohup "$@" >/dev/null 2>&1 & }
 check_script() {
         local program="$1"
         [ ! -f "${SHELLCONFIGDIR}/$program" ] && return

@@ -1,22 +1,32 @@
 local center = {
     {
-        desc = ' New File', icon = ' ', key = 'n',
+        desc = ' New File',
+        icon = ' ',
+        key = 'n',
         action = 'ene | startinsert',
     },
     {
-        desc = ' Find File', icon = ' ', key = 'f',
+        desc = ' Find File',
+        icon = ' ',
+        key = 'f',
         action = 'Telescope find_files',
     },
     {
-        desc = ' Recent Files', icon = ' ', key = 'r',
+        desc = ' Recent Files',
+        icon = ' ',
+        key = 'r',
         action = 'Telescope oldfiles',
     },
     {
-        desc = ' Find Text', icon = ' ', key = 'g',
+        desc = ' Find Text',
+        icon = ' ',
+        key = 'g',
         action = 'Telescope live_grep',
     },
     {
-        desc = ' Config', icon = ' ', key = 'c',
+        desc = ' Config',
+        icon = ' ',
+        key = 'c',
         action = function()
             local old_dir = vim.fn.getcwd()
             vim.api.nvim_set_current_dir(vim.fn.stdpath('config'))
@@ -25,19 +35,27 @@ local center = {
         end,
     },
     {
-        desc = ' Explore', icon = '󰥨 ', key = 'e', -- 
+        desc = ' Explore',
+        icon = '󰥨 ',
+        key = 'e', -- 
         action = 'Telescope file_browser',
     },
     {
-        desc = ' Lazy', icon = '󰒲 ', key = 'l',
+        desc = ' Lazy',
+        icon = '󰒲 ',
+        key = 'l',
         action = 'Lazy',
     },
     {
-        desc = ' Update Lazy', icon = '󰒲 ', key = 'u',
+        desc = ' Update Lazy',
+        icon = '󰒲 ',
+        key = 'u',
         action = 'Lazy sync',
     },
     {
-        desc = ' Quit', icon = ' ', key = 'q',
+        desc = ' Quit',
+        icon = ' ',
+        key = 'q',
         action = function() vim.api.nvim_input('<cmd>qa<cr>') end,
     },
 }
@@ -47,12 +65,17 @@ local footer = function()
     local stats = require('lazy').stats()
     local ms = (math.floor(stats.startuptime * 100 + 0.5) / 100)
     return {
-        '⚡ Neovim loaded ' .. stats.loaded .. '/' .. stats.count ..
-            ' plugins in ' .. ms .. 'ms',
+        '⚡ Neovim loaded '
+            .. stats.loaded
+            .. '/'
+            .. stats.count
+            .. ' plugins in '
+            .. ms
+            .. 'ms',
         'CWD: ' .. vim.fn.getcwd(),
     }
 end
-vert_size = vert_size +2
+vert_size = vert_size + 2
 
 local header = {
     [[███╗   ██╗ ███████╗ ██████╗  ██╗   ██╗ ██╗ ███╗   ███╗]],
@@ -61,15 +84,14 @@ local header = {
     [[██║╚██╗██║ ██╔══╝  ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╔╝██║]],
     [[██║ ╚████║ ███████╗╚██████╔╝  ╚████╔╝  ██║ ██║ ╚═╝ ██║]],
     [[╚═╝  ╚═══╝ ╚══════╝ ╚═════╝    ╚═══╝   ╚═╝ ╚═╝     ╚═╝]],
-    ''
+    '',
 }
-vert_size = vert_size +table.maxn(header)
+vert_size = vert_size + table.maxn(header)
 
-local upper_padding = math.floor(
-    (vim.api.nvim_win_get_height(0) -( vert_size )) /3
-)
+local upper_padding =
+    math.floor((vim.api.nvim_win_get_height(0) - vert_size) / 3)
 
-for _=1, upper_padding do
+for _ = 1, upper_padding do
     table.insert(header, 1, '')
 end
 
@@ -97,11 +119,13 @@ local function dashboard_opts()
             pattern = tostring(vim.api.nvim_get_current_win()),
             once = true,
             callback = function()
-                vim.schedule( function()
-                    vim.api.nvim_exec_autocmds( 'UIEnter', {
-                        group = 'dashboard'
-                    })
-                end)
+                vim.schedule(
+                    function()
+                        vim.api.nvim_exec_autocmds('UIEnter', {
+                            group = 'dashboard',
+                        })
+                    end
+                )
             end,
         })
     end
@@ -155,12 +179,22 @@ local function theme_config()
     --     groups = {},
     -- })
 
+    local override = require('github-theme.override')
+    override.specs = {
+        github_dark_default = {
+            syntax = {
+                string = '#ff6666',
+                variable = '#4d4dff',
+                keyword = '#ff0000',
+            },
+        },
+    }
     require('github-theme').setup({
         options = {
             hide_end_of_buffer = false,
             styles = {
                 comments = 'italic',
-                keywords = 'bold',
+                keywords = 'italic,bold',
                 types = 'italic,bold',
             },
         },
@@ -181,17 +215,18 @@ end
 return {
     {
         'nvimdev/dashboard-nvim',
-        lazy = false,
+        lazy = true,
         dependencies = {
             'nvim-telescope/telescope.nvim',
             'nvim-lua/plenary.nvim',
         },
         opts = dashboard_opts,
-    }, {
+    },
+    {
         'projekt0n/github-nvim-theme',
         name = 'github-theme',
         lazy = false,
         priority = 9998,
         config = theme_config,
-    }
+    },
 }
