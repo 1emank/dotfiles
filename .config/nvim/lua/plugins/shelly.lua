@@ -23,6 +23,7 @@ local shells = {
 
 return {
     dir = '~/repos/nvim/shelly',
+    -- '1emank/shelly',
     opts = {
         shells = shells,
     },

@@ -4,6 +4,6 @@
 !.bashrc
 !.bash_profile
 !.gitignore
-!.config/nvim
+!.config/nvim/**
 !.config/stylua.toml
 !.tmux.conf
