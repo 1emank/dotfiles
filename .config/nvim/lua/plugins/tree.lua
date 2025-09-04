@@ -10,7 +10,7 @@ return {
         keys = {
             {
                 '<leader>ft',
-                'Neotree toggle position=right',
+                '<cmd>Neotree toggle position=right<cr>',
                 desc = 'Neo-tree',
             },
         },
