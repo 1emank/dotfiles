@@ -58,7 +58,6 @@ PS1+=`  #[git branch<status>] #if they exist
 
 ## RC
 exists() { command -v "$1" >/dev/null 2>&1; }
-launch() { nohup "$@" >/dev/null 2>&1 & }
 check_script() {
         local program="$1"
         [ ! -f "${SHELLCONFIGDIR}/$program" ] && return
@@ -97,13 +96,61 @@ done
 
 ## Utilities
 ### Shell
+__repeat_alias=
+char_alias() {
+        if [ "$2" ]; then
+                local char="$1"
+                local meaning="$2"
+        elif [[ "$1" =~ ^(.)+=(.)+ ]]; then
+                IFS='=' read -r char meaning <<< "$1"
+        fi
+
+        [ ${#char} != 1 ] &&
+                echo 'The alias name must be a single letter' &&
+                return 1
+
+        # shellcheck disable=SC2139
+        alias "$char"="$meaning" && __repeat_alias+="${char}"
+}
+command_not_found_handle() {
+        local comm="$1"
+        local char=${comm:0:1}
+        local len=${#comm}
+
+        # If removing all the ocurrences of the first character we have no
+        # characters left, we can have a valid char_alias
+        [ -z "${comm//${char}/}" ] &&
+                [[ $__repeat_alias =~ ^(.)*${char}(.)* ]] && {
+                shift
+                for (( j=0; j<len; j++ )); do
+                        $char "$@"
+                done
+                return
+        }
+
+        bash -c "$@"
+        cnf_handle_distro "$comm"
+
+        return 127
+}
+cnf_handle_distro() {
+        exists pacman && pkgfile "$1"
+        #TODO: additional package managers
+        true
+}
 reload() { welcome=false exec "${SHELL:-/bin/bash}"; }
 reset() { [ "$TMUX" ] && tmux clear-history; command reset; }
 #loop() {}
+launch() {
+    [ "$1" = '-q' ] && shift && ( launch "$@" )
+    [ -z "$1" ] && echo 'No program to launch' 1>&2 && return 255
+    [ "$1" ] && nohup "$@" >/dev/null 2>&1 &
+}
 ### Movement
-alias x='pushd .. >/dev/null'
-alias z='popd >/dev/null'
-alias c='pushd >/dev/null'
+char_alias x='pushd .. >/dev/null'
+char_alias z='popd >/dev/null'
+char_alias c='pushd >/dev/null'
+char_alias t='echo test'
 alias ls='ls --color=auto'
 alias la='ls -A --color=auto'
 ### Other
@@ -131,40 +178,53 @@ notes() {
                 ;;
         esac
 }
-
 upa_distro() {
         local SUDO="$1"
 
         exists pacman && {
-            $SUDO pacman -Syu --noconfirm
-            exists paru && paru -Syu --noconfirm && return
-            exists yay && yay -Syu --noconfirm && return 
-            return
+                $SUDO pacman -Syu --noconfirm
+                exists paru && paru -Syu --noconfirm && return
+                exists yay && yay -Syu --noconfirm && return 
+                return 0
         }
-        exists pkg && { $SUDO pkg upgrade -y; return; }
+        exists pkg && {
+                $SUDO pkg upgrade -y && exists apt &&
+                        $SUDO apt autoremove --purge
+                return 0
+        }
         exists apt && {
                 $SUDO apt full-upgrade -y && $SUDO apt autoremove --purge
-                return
+                return 0
         }
 }
 update_all() {
-        local SUDO
-        exists sudo && [ "$EUID" -ne 0 ] && SUDO=sudo
+        local SUDO=
+        local root
+        root="$({ [ "$EUID" -eq 0 ] && echo true; } || echo false)"
+        exists sudo && ! $root && SUDO=sudo
 
         upa_distro $SUDO
-        exists rustup && rustup update
+        exists rustup && ! $root && rustup update
         nvim --headless "+Lazy! sync" +qa
         exists npm && {
                 npm update
                 [ $SUDO ] && $SUDO npm -g update
         }
+        true
 }
 alias upa=update_all
 alias nv=nvim
 alias nman='MANPAGER="nvim +Man!" man'
-alias work='( nohup brave --user-data-dir="${HOME}/.local/work" \
-        --no-first-run --no-default-browser-check & ) >/dev/null 2>&1'
+alias work='launch -q brave --user-data-dir="${HOME}/.local/work"'
 alias luafmt='stylua --config-path ~/.config/stylua.toml'
+tmux() {
+        if [ "$1" ] || [ "$TMUX" ]; then
+                command tmux "$@"
+        else
+                command tmux attach 2>/dev/null ||
+                        command tmux
+        fi
+}
 
 ## Opts
 shopt -s histappend

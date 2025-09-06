@@ -54,10 +54,10 @@ local function term_to_normal()
     )
 end
 
-set_multimode('<C-h>', { 'nvxi', move_win('h'), 'Move to left window' })
-set_multimode('<C-j>', { 'nvxi', move_win('j'), 'Move to lower window' })
-set_multimode('<C-k>', { 'nvxi', move_win('k'), 'Move to upper window' })
-set_multimode('<C-l>', { 'nvxi', move_win('l'), 'Move to right window' })
+set_multimode('<C-h>', { 'ntsvxi', move_win('h'), 'Move to left window' })
+set_multimode('<C-j>', { 'ntsvxi', move_win('j'), 'Move to lower window' })
+set_multimode('<C-k>', { 'ntsvxi', move_win('k'), 'Move to upper window' })
+set_multimode('<C-l>', { 'ntsvxi', move_win('l'), 'Move to right window' })
 set_multimode('+', { 'n', '$' }, { 'v', '$h', 'End of line' })
 set_multimode('gd', { 'n', vim.lsp.buf.definition, 'Go to definition' })
 

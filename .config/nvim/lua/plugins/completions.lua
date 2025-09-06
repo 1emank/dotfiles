@@ -33,6 +33,7 @@ return {
         version = '*',
         opts = {
             sources = {
+                -- add lazydev to your completion providers
                 default = { 'lazydev', 'lsp', 'path', 'snippets', 'buffer' },
                 providers = {
                     lazydev = {

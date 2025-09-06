@@ -43,6 +43,7 @@ vim.o.scrolloff = 7
 vim.o.cmdheight = 1
 
 vim.o.foldmethod = 'indent'
-vim.o.foldenable = false
+vim.o.foldlevel = 999
+vim.o.foldenable = true
 
 return {}

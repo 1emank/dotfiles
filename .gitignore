@@ -1,9 +1,13 @@
-.config/nvim/lazy-lock.json
-.config/nvim/.neoconf.json
 *
+
 !.bashrc
 !.bash_profile
 !.gitignore
-!.config/nvim/**
+!.config/nvim
+!.config/nvim/lua
+!.config/nvim/lua/plugins
 !.config/stylua.toml
 !.tmux.conf
+
+.config/nvim/lazy-lock.json
+.config/nvim/.neoconf.json

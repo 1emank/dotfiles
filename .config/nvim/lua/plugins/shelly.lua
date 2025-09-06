@@ -21,13 +21,23 @@ local shells = {
     },
 }
 
-return {
-    dir = '~/repos/nvim/shelly',
-    -- '1emank/shelly',
-    opts = {
-        shells = shells,
-    },
+local from_repo = true
+local local_repo = '~/repos/nvim/shelly'
+local origin = 'git@github.com:1emank/shelly.git'
+local spec = {
+    opts = { shells = shells },
     keys = {
         { '<leader>tt', '<cmd>Shelly overview<cr>' },
     }
 }
+
+---@diagnostic disable-next-line: undefined-field
+if from_repo then
+    table.insert(spec, 1, origin)
+elseif (vim.uv or vim.loop).fs_stat(local_repo) then
+    spec['dir'] = local_repo
+else
+    spec = {}
+end
+
+return spec

@@ -12,33 +12,35 @@ vim.diagnostic.config({
     signs = true,
 })
 
+local function post()
+    require('lspconfig').lua_ls.setup({
+        settings = {
+            Lua = {
+                runtime = {
+                    version = 'LuaJIT',
+                    special = { reload = 'require' },
+                },
+                diagnostics = { globals = { 'vim' } },
+                workspace = {
+                    -- library = {
+                    --   [vim.fn.stdpath("data") .. "/lazy/neovim/lua"] = true,
+                    --   [vim.fn.stdpath("config")] = true,
+                    -- },
+                    library = vim.api.nvim_get_runtime_file('', true),
+                    maxPreload = 10000,
+                    preloadFileSize = 10000,
+                },
+                completion = { callSnippet = 'Replace' },
+            },
+        },
+    })
+end
+
 return {
     {
         'neovim/nvim-lspconfig',
         enabled = true,
-        config = function()
-            require('lspconfig').lua_ls.setup({
-                settings = {
-                    Lua = {
-                        runtime = {
-                            version = 'LuaJIT',
-                            special = { reload = 'require' },
-                        },
-                        diagnostics = { globals = { 'vim' } },
-                        workspace = {
-                            -- library = {
-                            --   [vim.fn.stdpath("data") .. "/lazy/neovim/lua"] = true,
-                            --   [vim.fn.stdpath("config")] = true,
-                            -- },
-                            library = vim.api.nvim_get_runtime_file('', true),
-                            maxPreload = 10000,
-                            preloadFileSize = 10000,
-                        },
-                        completion = { callSnippet = 'Replace' },
-                    },
-                },
-            })
-        end,
+        config = post,
     },
     {
         'folke/trouble.nvim',
