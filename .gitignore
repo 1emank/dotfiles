@@ -1,6 +1,7 @@
 .config/nvim/lazy-lock.json
 .config/nvim/.neoconf.json
 .config/nvim/history
+.config/alacritty/alacritty.toml
 
 .bash_history
 .bash_logout
