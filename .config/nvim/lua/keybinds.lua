@@ -43,6 +43,7 @@ local function move_win(dir)
     return function()
         local target_win = vim.fn.win_getid(vim.fn.winnr(dir))
         if target_win ~= 0 then vim.api.nvim_set_current_win(target_win) end
+        vim.api.nvim_input('<Esc>')
     end
 end
 
@@ -63,25 +64,4 @@ set_multimode('gd', { 'n', vim.lsp.buf.definition, 'Go to definition' })
 
 set('t', '<Esc>', term_to_normal)
 
-return {
-    {
-        'folke/which-key.nvim',
-        event = 'VeryLazy',
-        opts = {
-            preset = 'helix',
-            delay = 200,
-            win = {
-                padding = { 0, 0 },
-                border = false,
-                title = false,
-            },
-        },
-        keys = { --what is dis?
-            {
-                '<leader>?',
-                function() require('which-key').show({ global = false }) end,
-                desc = 'Buffer Local Keymaps (which-key)',
-            },
-        },
-    },
-}
+return {}

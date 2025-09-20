@@ -26,19 +26,22 @@ end
 vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = '\\'
+if os.getenv('THEME') == 'light' then
+    vim.g.THEME = 'light'
+else
+    vim.g.THEME = 'dark'
+end
+vim.g.HISTORY_DIR = vim.fn.stdpath('config') .. '/history'
 
-local plugins = vim.fn.stdpath('config') .. '/plg'
+local lua_dir = vim.fn.readdir(vim.fn.stdpath('config') .. '/lua')
+local imports = {}
+for i = 1, #lua_dir do
+    table.insert(imports, { import = vim.fn.split(lua_dir[i], '.lua')[1] })
+end
 
--- Setup lazy.nvim
 require('lazy').setup({
-    -- plugins,
-    spec = {
-        { import = 'plugins' },
-        -- { import = plg_path },
-    },
-    -- Configure any other settings here. See the documentation for more
-    -- details. colorscheme that will be used when installing plugins.
+    spec = imports,
+    defaults = { lazy = true },
     install = { colorscheme = { 'github_dark_default' } },
-    -- automatically check for plugin updates
     checker = { enabled = true },
 })

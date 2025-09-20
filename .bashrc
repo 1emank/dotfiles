@@ -5,39 +5,46 @@
 #
 
 # If not running interactively, don't do anything
-case $- in *i*) ;;
-*) return ;;
-esac
+[[ $- != *i* ]] && return
 
 ## Prompt
 use_color() {
         # shellcheck disable=SC2154
-        case "$TERM:$color_prompt" in *:false) return 1 ;;
+        case "$TERM:$color_prompt" in
+        *:false) return 1 ;;
         xterm-color:* | *-256color:* | alacritty:* | foot:* )
-                { tput setaf sgr0 >/dev/null 2>&1 && return 0; } ||
-                        return 1 ;;
+                if tput setaf sgr0 >/dev/null 2>&1
+                then return 0
+                else return 1
+                fi ;;
         *) return 1 ;;
         esac
 }
 use_color && {
-        SUCCESS="\[$(tput setaf 10)\]"
-        TITLE="\[$(tput setaf 12)\]"
-        ERROR="\[$(tput setaf 9)\]"
-        WARNING="\[$(tput setaf 11)\]"
-        RESET="\[$(tput sgr0)\]"
+        SUCCESS=$'\[\E[92m\]'   #\[$(tput setaf 10)\]
+        TITLE=$'\[\E[94m\]'     #\[$(tput setaf 12)\]
+        ERROR=$'\[\E[91m\]'     #\[$(tput setaf 9)\]
+        WARNING=$'\[\E[93m\]'   #\[$(tput setaf 11)\]
+        RESET=$'\[\E(B\E[m\]'   #\[$(tput sgr0)\]
 }
 __PROMPT_COMMAND() {
-        __errno=$?; [ $__errno = 0 ] && __errno=
-        __branch="$(git branch --show-current 2>/dev/null)" && {
+        __errno=$?
+        # __char_alias_return is a workaround for the prompt. $? is still 127
+        [ -n "$__char_alias_return" ] && __errno="$__char_alias_return"
+        [ "$__errno" = 0 ] && __errno=
+        if __branch="$(git branch --show-current 2>/dev/null)"; then
                 __status="$(git status -s 2>/dev/null | wc -l)"
                 [ "$__status" = 0 ] && __status=
-                return
-        }
-        __status=
+                return 0
+        else
+                __status=
+                return 0
+        fi
 }
 PROMPT_COMMAND=__PROMPT_COMMAND
 
-case "$HOME" in *termux*) #[USER@HOSTNAME:PWD], [PWD] in termux
+case "$HOME" in
+*termux*) #[USER@HOSTNAME:PWD], [PWD] in termux
         PS1="[${TITLE}\w${RESET}]" ;;
 *)
         PS1="[${SUCCESS}\u@\h${RESET}:${TITLE}\w${RESET}]" ;;
@@ -58,9 +65,9 @@ PS1+=`  #[git branch<status>] #if they exist
 
 ## RC
 exists() { command -v "$1" >/dev/null 2>&1; }
-check_script() {
+script_is_old() {
         local program="$1"
-        [ ! -f "${SHELLCONFIGDIR}/$program" ] && return
+        [ ! -f "${SHELLCONFIGDIR}/$program" ] && return 0
 
         local now modified age one_week
         now="$( date '+%s' )"
@@ -68,19 +75,21 @@ check_script() {
         age="$(( "$now" - "$modified" ))"
         one_week="$(( 7 *24 *60 *60 ))"
 
-        [ "$age" -gt "$one_week" ]  && return
-
-        return 1
+        if [ "$age" -gt "$one_week" ]
+        then return 0
+        else return 1
+        fi
 }
 update_script(){
         local comm="$1"
-        [ "$comm" ] && exists "$comm" && check_script "$comm" && ( {
-                nohup "$@" > "${SHELLCONFIGDIR}/$comm" 2>/dev/null ||
+        if [ -n "$comm" ] && exists "$comm" && script_is_old "$comm"; then
+                launch -q "$@" ||
                         printf 'Error writing the "%s" script' "$comm" 1>&2
-        } & )
+        fi
 }
 
-SHELLCONFIGDIR="${XDG_CONFIG_HOME:-"${HOME}/.config"}/term"
+CONFIG="${XDG_CONFIG_HOME:-${HOME}/.config}"
+SHELLCONFIGDIR="${CONFIG}/term"
 HISTSIZE=1000
 HISTFILESIZE=2000
 HISTCONTROL=ignoreboth
@@ -91,139 +100,184 @@ HISTIGNORE=ls:pwd:clear:reload:reset
 update_script fzf --bash
 for file in "$SHELLCONFIGDIR"/*; do
         # shellcheck disable=SC1090
-        . "$file"
+        source "$file"
 done
 
 ## Utilities
 ### Shell
-__repeat_alias=
+__char_alias=
 char_alias() {
-        if [ "$2" ]; then
-                local char="$1"
-                local meaning="$2"
-        elif [[ "$1" =~ ^(.)+=(.)+ ]]; then
-                IFS='=' read -r char meaning <<< "$1"
+        if [ "${1:1:1}" != '=' ]; then
+                echo 'The alias name must be a single letter'
+                return 1
         fi
 
-        [ ${#char} != 1 ] &&
-                echo 'The alias name must be a single letter' &&
-                return 1
+        local char="${1:0:1}"
+        local meaning="${1:2}"
 
-        # shellcheck disable=SC2139
-        alias "$char"="$meaning" && __repeat_alias+="${char}"
+        if eval "${char}(){"$'\n'"$meaning \$@"$'\n'"}"
+        then __char_alias+="${char}"
+        else return
+        fi
 }
 command_not_found_handle() {
         local comm="$1"
-        local char=${comm:0:1}
-        local len=${#comm}
-
-        # If removing all the ocurrences of the first character we have no
-        # characters left, we can have a valid char_alias
-        [ -z "${comm//${char}/}" ] &&
-                [[ $__repeat_alias =~ ^(.)*${char}(.)* ]] && {
-                shift
-                for (( j=0; j<len; j++ )); do
-                        $char "$@"
-                done
-                return
-        }
-
-        bash -c "$@"
-        cnf_handle_distro "$comm"
-
-        return 127
+        local char="${comm:0:1}"
+        if [ -z "${comm//${char}/}" ] && [[ $__char_alias == *"$char"* ]]; then
+                return 127
+        else
+                bash -c "$@"
+                cnf_handle_distro "$comm"
+                return 127
+        fi
 }
-cnf_handle_distro() {
-        exists pacman && pkgfile "$1"
+__cnf_handle_distro() {
+        exists pacman && pkgfile "$1" && return
         #TODO: additional package managers
         true
 }
-reload() { welcome=false exec "${SHELL:-/bin/bash}"; }
-reset() { [ "$TMUX" ] && tmux clear-history; command reset; }
-#loop() {}
-launch() {
-    [ "$1" = '-q' ] && shift && ( launch "$@" )
-    [ -z "$1" ] && echo 'No program to launch' 1>&2 && return 255
-    [ "$1" ] && nohup "$@" >/dev/null 2>&1 &
+__char_alias_runner() {
+        # shellcheck disable=SC2086
+        set -- ${__last_cmd:-ab}    # no special meaning, just two different
+        local comm="$1"             # chars so the test down below fails
+        local char="${comm:0:1}"
+        local len="${#comm}"
+        shift
+        if [ -z "${comm//${char}/}" ] && [[ $__char_alias == *"$char"* ]]; then
+                if [ -n "$1" ]; then
+                        for ((i=0; i<len; i++)); do
+                                $char "$@"
+                        done
+                else
+                        for ((i=0; i<len; i++)); do
+                                $char
+                        done
+                fi
+        fi
+        __char_alias_return=$?
 }
+trap '[ $? = 127 ] && __char_alias_runner; __last_cmd="$BASH_COMMAND"' DEBUG
+
+reload() { welcome=false exec "${SHELL:-/bin/bash}"; }
+reset() { [ -n "$TMUX" ] && tmux clear-history; command reset; }
 ### Movement
-char_alias x='pushd .. >/dev/null'
-char_alias z='popd >/dev/null'
-char_alias c='pushd >/dev/null'
-char_alias t='echo test'
+# shellcheck disable=SC2016
+char_alias x='pushd ..'
+# shellcheck disable=SC2016
+char_alias z='popd'
+char_alias t='echo'
+alias c='pushd'
 alias ls='ls --color=auto'
 alias la='ls -A --color=auto'
 ### Other
 alias grep='grep --color=auto'
-rmr() { rm -r "$@" && echo "Done!"; }
-# shellcheck disable=SC2164
 notes() {
         [ -z "$NOTES_DIR" ] && local NOTES_DIR="${HOME}/repos/notes"
         [ -d "$NOTES_DIR" ] || return 1
 
-        case "$(pwd)" in "$NOTES_DIR"*)
-                git add .
-                git commit -m "$(git diff --cached --name-status)"
-                git push origin main
+        case "$(pwd)" in
+        "$NOTES_DIR"*)
+                git add . &&
+                        git commit -m "$(git diff --cached --name-status)" &&
+                        git push origin main
 
-                [ "$__notes_uncd" ] && {
-                        cd "$__notes_uncd"
+                if [ -n "$__notes_uncd" ]; then
+                        cd "$__notes_uncd" || return 1
                         unset __notes_uncd
-                }
+                fi
                 ;;
         *)
                 __notes_uncd="$(pwd)"
-                cd "$NOTES_DIR"
+                cd "$NOTES_DIR" || return 1
                 git pull origin main
                 ;;
         esac
 }
 upa_distro() {
         local SUDO="$1"
-
-        exists pacman && {
+        if exists pacman; then
                 $SUDO pacman -Syu --noconfirm
                 exists paru && paru -Syu --noconfirm && return
                 exists yay && yay -Syu --noconfirm && return 
                 return 0
-        }
-        exists pkg && {
+        fi
+        if exists pkg; then
                 $SUDO pkg upgrade -y && exists apt &&
-                        $SUDO apt autoremove --purge
+                        $SUDO apt autoremove --purge -y
                 return 0
-        }
-        exists apt && {
-                $SUDO apt full-upgrade -y && $SUDO apt autoremove --purge
+        fi
+        if exists apt; then
+                $SUDO apt full-upgrade -y && $SUDO apt autoremove --purge -y
                 return 0
-        }
+        fi
 }
 update_all() {
-        local SUDO=
-        local root
-        root="$({ [ "$EUID" -eq 0 ] && echo true; } || echo false)"
+        local SUDO root
+        if [ "$EUID" -eq 0 ]
+        then root=true
+        else root=false
+        fi
         exists sudo && ! $root && SUDO=sudo
 
         upa_distro $SUDO
-        exists rustup && ! $root && rustup update
-        nvim --headless "+Lazy! sync" +qa
+        nvim --headless '+Lazy! sync' +qa
         exists npm && {
-                npm update
-                [ $SUDO ] && $SUDO npm -g update
+                npm -g update
+                [ -n "$SUDO" ] && $SUDO npm -g update
         }
+        exists rustup && ! $root && rustup update
         true
 }
 alias upa=update_all
 alias nv=nvim
 alias nman='MANPAGER="nvim +Man!" man'
 alias work='launch -q brave --user-data-dir="${HOME}/.local/work"'
-alias luafmt='stylua --config-path ~/.config/stylua.toml'
+alias luaf='stylua --config-path ~/.config/stylua.toml'
 tmux() {
-        if [ "$1" ] || [ "$TMUX" ]; then
-                command tmux "$@"
-        else
-                command tmux attach 2>/dev/null ||
-                        command tmux
+        if [ -n "$1" ]
+        then command tmux "$@"
+        else command tmux attach 2>/dev/null || command tmux
         fi
+}
+theme() {
+        local check=false
+        local silent=false
+        local chosen_theme
+        while [ $# -gt 0 ]; do case "$1" in
+            --check) check=true; shift;;
+            --silent) silent=true; shift;;
+            *) chosen_theme="$1"; shift;;
+        esac done
+
+        local prefix="${CONFIG}/alacritty"
+        if cmp --silent "${prefix}/dark_mode.toml" "${prefix}/alacritty.toml"
+        then THEME=dark
+        else THEME=light
+        fi
+
+        if $check; then
+            $silent || echo "$THEME"
+            return 0
+        fi
+
+        case "${THEME}:${chosen_theme}" in
+        *:light|dark:)
+                THEME=light
+                cp "${prefix}/light_mode.toml" "${prefix}/alacritty.toml"
+                ;;
+        *:dark|light:)
+                THEME=dark
+                cp "${prefix}/dark_mode.toml" "${prefix}/alacritty.toml"
+                ;;
+        *) return 1 ;;
+        esac
+}
+launch() {
+        case "$1" in
+        -q) shift; { ( launch "$@" & ) } >/dev/null 2>&1; return;;
+        '') return 1;;
+        *) nohup "$@" >/dev/null 2>&1 & return;;
+        esac
 }
 
 ## Opts
@@ -232,12 +286,19 @@ shopt -s checkwinsize
 shopt -s nullglob
 bind 'set completion-ignore-case on'
 
-[ "$DISPLAY" ] && [ "$(tput cols 2>/dev/null)" -lt 100 ] &&
-        xdotool key alt+F10
+theme --check --silent
+export THEME
 
-[ -z "${TMUX}${NVIM}" ] && exists fastfetch && ${welcome:-true} && {
-        { $color_prompt && fastfetch; } || fastfetch --pipe
-}
+if [ -z "${TMUX}${NVIM}" ]; then
+        [ -n "$DISPLAY" ] && [ "$(tput cols 2>/dev/null)" -lt 100 ] &&
+                xdotool key alt+F10
+
+        if exists fastfetch && ${welcome:-true} && $color_prompt; then
+                fastfetch
+        else
+                fastfetch --pipe
+        fi
+fi
 
 unset SUCCESS TITLE ERROR WARNING RESET color_prompt use_color welcome \
-        update_script check_script
+    update_script check_script

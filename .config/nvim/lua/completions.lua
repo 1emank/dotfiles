@@ -9,6 +9,7 @@ return {
     {
         'folke/lazydev.nvim',
         ft = 'lua',
+        event = 'InsertEnter',
         opts = {
             library = {
                 -- See the configuration section for more details
@@ -19,6 +20,7 @@ return {
     },
     {
         'hrsh7th/nvim-cmp',
+        event = 'InsertEnter',
         opts = function(_, opts)
             opts.sources = opts.sources or {}
             table.insert(opts.sources, {
@@ -29,6 +31,7 @@ return {
     },
     {
         'saghen/blink.cmp',
+        event = 'InsertEnter',
         build = blink_build,
         version = '*',
         opts = {

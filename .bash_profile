@@ -5,7 +5,7 @@
 #
 
 add_to_path() {
-        [ -d "$1" ] || return 1
+        [ -d "$1" ] || return
         local directory="$1"
 
         case ":${PATH}:" in
@@ -15,7 +15,7 @@ add_to_path() {
 }
 
 # shellcheck disable=SC2155
-command -v manpath >/dev/null &&
+command -v manpath >/dev/null 2>&1 &&
     export MANPATH="$(manpath -g):${HOME}/.local/share/man"
 
 export EDITOR=nvim
@@ -24,5 +24,6 @@ export BROWSER=brave
 
 add_to_path "${HOME}/.local/bin"
 add_to_path "${HOME}/node_modules/.bin"
+add_to_path "${HOME}/.cargo/bin"
 
-[ -f "${HOME}/.bashrc" ] && . "${HOME}/.bashrc"
+[ -f "${HOME}/.bashrc" ] && source "${HOME}/.bashrc"

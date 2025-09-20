@@ -24,22 +24,21 @@
 --     end, 3000)
 -- end
 
----@module "telescope.builtin"
-local t = require('telescope')
+local t = function(key)
+    return function() require('telescope')[key]() end
+end
 
 return {
-    {
-        'nvim-telescope/telescope.nvim',
-        dependencies = {
-            { 'nvim-lua/plenary.nvim' },
-        },
-        keys = {
-            { '<leader>ff', t.find_files, desc = 'Telescope find files' },
-            { '<leader>fb', t.buffers, desc = 'Telescope buffers' },
-            { '<leader>fh', t.help_tags, desc = 'Telescope help tags' },
-            { '<leader>fc', t.commands, desc = 'Telescope commands' },
-            { '<leader>fr', t.command_history, desc = 'Telescope history' },
-            { '<leader>fg', t.live_grep, desc = 'Telescope live_grep' },
-        },
+    'nvim-telescope/telescope.nvim',
+    dependencies = {
+        { 'nvim-lua/plenary.nvim' },
+    },
+    keys = {
+        { '<leader>ff', t('find_files'), desc = 'Telescope find files' },
+        { '<leader>fb', t('buffers'), desc = 'Telescope buffers' },
+        { '<leader>fh', t('help_tags'), desc = 'Telescope help tags' },
+        { '<leader>fc', t('commands'), desc = 'Telescope commands' },
+        { '<leader>fr', t('command_history'), desc = 'Telescope history' },
+        { '<leader>fg', t('live_grep'), desc = 'Telescope live_grep' },
     },
 }

@@ -1,23 +1,27 @@
 ---@alias Command {
-    ---[1]?: string | table<string>,
-    ---["name"]?: string,
-    ---["keys"]: string,
+---[1]?: string | table<string>,
+---["name"]?: string,
+---["keys"]: string,
 ---}
 
 ---@type table<Command>
 local shells = {
     {
-        keys = '<leader>ss'
+        keys = '<leader>ss',
     },
     {
-        'bash', keys = '<leader>sb'
+        'bash',
+        keys = '<leader>sb',
     },
     {
-        'python3', name = 'Python', keys = '<leader>sp'
+        'python3',
+        name = 'Python',
+        keys = '<leader>sp',
     },
     {
         { 'tmux', 'new-session', '-A', '-s', 'main' },
-        name = 'Tmux', keys = '<leader>sm'
+        name = 'Tmux',
+        keys = '<leader>sm',
     },
 }
 
@@ -28,7 +32,7 @@ local spec = {
     opts = { shells = shells },
     keys = {
         { '<leader>tt', '<cmd>Shelly overview<cr>' },
-    }
+    },
 }
 
 ---@diagnostic disable-next-line: undefined-field

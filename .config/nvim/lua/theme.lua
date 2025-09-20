@@ -64,8 +64,12 @@ local function theme_config()
             },
         },
     })
+    vim.g.THEMES = {
+        light = 'github_light_default',
+        dark = 'github_dark_default',
+    }
     -- vim.cmd('colorscheme github_dark')
-    vim.cmd('colorscheme github_dark_default')
+    vim.cmd('colorscheme ' .. vim.g.THEMES[vim.g.THEME])
     -- vim.cmd('colorscheme github_dark_dimmed')
     -- vim.cmd('colorscheme github_dark_high_contrast')
     -- vim.cmd('colorscheme github_dark_colorblind') -- beta
