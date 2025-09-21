@@ -1,6 +1,6 @@
 return {
     'folke/which-key.nvim',
-    event = 'InsertEnter',
+    lazy = false,
     opts = {
         preset = 'helix',
         delay = 200,
@@ -10,11 +10,11 @@ return {
             title = false,
         },
     },
-    keys = { --what is dis?
+    keys = {
         {
             '<leader>?',
             function() require('which-key').show({ global = false }) end,
-            desc = 'Buffer Local Keymaps (which-key)',
+            desc = 'Buffer Local Keymaps (which-key)', --what is dis?
         },
     },
 }

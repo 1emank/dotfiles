@@ -64,6 +64,13 @@ PS1+=`  #[git branch<status>] #if they exist
         `"$({ [ "$(id -ru)" = 0 ] && echo '# '; } || echo '$ ')"
 
 ## RC
+launch() {
+        case "$1" in
+        -q) shift; { ( launch "$@" & ) } >/dev/null 2>&1; return;;
+        '') return 1;;
+        *) nohup "$@" >/dev/null 2>&1 & return;;
+        esac
+}
 exists() { command -v "$1" >/dev/null 2>&1; }
 script_is_old() {
         local program="$1"
@@ -84,7 +91,7 @@ update_script(){
         local comm="$1"
         if [ -n "$comm" ] && exists "$comm" && script_is_old "$comm"; then
                 launch -q "$@" ||
-                        printf 'Error writing the "%s" script' "$comm" 1>&2
+                        printf 'Error writing the "%s" script\n' "$comm" 1>&2
         fi
 }
 
@@ -127,12 +134,12 @@ command_not_found_handle() {
                 return 127
         else
                 bash -c "$@"
-                cnf_handle_distro "$comm"
+                __cnf_handle_distro "$comm"
                 return 127
         fi
 }
 __cnf_handle_distro() {
-        exists pacman && pkgfile "$1" && return
+        exists pacman && pkgfile "$1"
         #TODO: additional package managers
         true
 }
@@ -270,13 +277,6 @@ theme() {
                 cp "${prefix}/dark_mode.toml" "${prefix}/alacritty.toml"
                 ;;
         *) return 1 ;;
-        esac
-}
-launch() {
-        case "$1" in
-        -q) shift; { ( launch "$@" & ) } >/dev/null 2>&1; return;;
-        '') return 1;;
-        *) nohup "$@" >/dev/null 2>&1 & return;;
         esac
 }
 

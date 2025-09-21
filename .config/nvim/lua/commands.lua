@@ -29,14 +29,6 @@ command(
     {}
 )
 
-timer():start(
-    180000,
-    180000,
-    vim.schedule_wrap(function()
-        if vim.bo.modified then vim.cmd('silent! write') end
-    end)
-)
-
 autocmd('VimEnter', {
     callback = function()
         local cmd = {
@@ -58,5 +50,21 @@ autocmd('VimEnter', {
         })
     end,
 })
+
+timer():start(
+    180000, 180000,
+    vim.schedule_wrap(function ()
+        local buffer_id = vim.api.nvim_get_current_buf()
+        local buftype = vim.bo[buffer_id].buftype
+
+        if vim.bo[buffer_id].modified
+            and buftype == ""
+            and not vim.opt.ro:get()
+            and vim.bo[buffer_id].modifiable
+        then
+            vim.cmd("silent write")
+        end
+    end)
+)
 
 return {}

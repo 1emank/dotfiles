@@ -26,17 +26,19 @@ end
 vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = '\\'
-if os.getenv('THEME') == 'light' then
-    vim.g.THEME = 'light'
-else
-    vim.g.THEME = 'dark'
+
+if os.getenv('THEME') == 'light'
+then vim.g.THEME = 'light'
+else vim.g.THEME = 'dark'
 end
 vim.g.HISTORY_DIR = vim.fn.stdpath('config') .. '/history'
 
-local lua_dir = vim.fn.readdir(vim.fn.stdpath('config') .. '/lua')
+local lua_dir = vim.fn.readdir( vim.fn.stdpath('config') .. '/lua' )
 local imports = {}
 for i = 1, #lua_dir do
-    table.insert(imports, { import = vim.fn.split(lua_dir[i], '.lua')[1] })
+    table.insert( imports,
+        { import = vim.fn.split(lua_dir[i], '.lua')[1] }
+    )
 end
 
 require('lazy').setup({

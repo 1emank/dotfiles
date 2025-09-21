@@ -1,47 +1,44 @@
----@alias Command {
----[1]?: string | table<string>,
----["name"]?: string,
----["keys"]: string,
----}
-
----@type table<Command>
-local shells = {
-    {
-        keys = '<leader>ss',
-    },
-    {
-        'bash',
-        keys = '<leader>sb',
-    },
-    {
-        'python3',
-        name = 'Python',
-        keys = '<leader>sp',
-    },
-    {
-        { 'tmux', 'new-session', '-A', '-s', 'main' },
-        name = 'Tmux',
-        keys = '<leader>sm',
-    },
-}
-
-local from_repo = true
-local local_repo = '~/repos/nvim/shelly'
+local from_repo = false
+local local_repo = vim.fn.expand('~/repos/nvim/shelly')
 local origin = 'git@github.com:1emank/shelly.git'
+
 local spec = {
-    opts = { shells = shells },
+    opts = {
+        default = 'bash',
+        { 'python3', name = 'Python' },
+        { { 'tmux', 'new-session', '-A', '-s', 'main' }, name = 'Tmux' },
+    },
     keys = {
-        { '<leader>tt', '<cmd>Shelly overview<cr>' },
+        { '<leader>so', '<cmd>Shelly overview<cr>', desc = 'Shelly overview' },
+        {
+            '<leader>ss',
+            function() require('shelly').default() end,
+            desc = 'Toggle default shell'
+        },
+        {
+            '<leader>sp',
+            function() require('shelly').by_name('Python') end,
+            desc = 'Toggle Python shell'
+        },
+        {
+            '<leader>st',
+            function() require('shelly').by_index(2) end,
+            desc = 'Toggle Tmux shell'
+        },
+        {
+            '<leader>sh',
+            function() require('shelly').hide() end,
+            desc = 'Hide shell'
+        },
     },
 }
 
+if from_repo
+then table.insert(spec, 1, origin)
 ---@diagnostic disable-next-line: undefined-field
-if from_repo then
-    table.insert(spec, 1, origin)
-elseif (vim.uv or vim.loop).fs_stat(local_repo) then
-    spec['dir'] = local_repo
-else
-    spec = {}
+elseif (vim.uv or vim.loop).fs_stat(local_repo)
+then spec['dir'] = local_repo
+else spec = {}
 end
 
 return spec
