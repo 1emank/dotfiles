@@ -43,12 +43,10 @@ __PROMPT_COMMAND() {
 }
 PROMPT_COMMAND=__PROMPT_COMMAND
 
-case "$HOME" in
-*termux*) #[USER@HOSTNAME:PWD], [PWD] in termux
-        PS1="[${TITLE}\w${RESET}]" ;;
-*)
-        PS1="[${SUCCESS}\u@\h${RESET}:${TITLE}\w${RESET}]" ;;
-esac
+if $TERMUX #[USER@HOSTNAME:PWD], [PWD] in termux
+then PS1="[${TITLE}\w${RESET}]"
+else PS1="[${SUCCESS}\u@\h${RESET}:${TITLE}\w${RESET}]"
+fi
 
 PS1+=`  #[git branch<status>] #if they exist
         `'${__branch:+'`
@@ -289,7 +287,7 @@ bind 'set completion-ignore-case on'
 theme --check --silent
 export THEME
 
-if [ -z "${TMUX}${NVIM}" ]; then
+if [ -z "${TMUX}${NVIM}" ] && ! $TERMUX; then
         [ -n "$DISPLAY" ] && [ "$(tput cols 2>/dev/null)" -lt 100 ] &&
                 xdotool key alt+F10
 
@@ -301,4 +299,4 @@ if [ -z "${TMUX}${NVIM}" ]; then
 fi
 
 unset SUCCESS TITLE ERROR WARNING RESET color_prompt use_color welcome \
-    update_script check_script
+    update_script check_script TERMUX

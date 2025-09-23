@@ -80,3 +80,10 @@ watchfiles
 .config/user-dirs.locale
 .config/Vaporizer2
 .config/xfce4
+.lesshst
+.node_repl_history
+.npmrc
+downloads/
+node_modules/
+rustup
+sdcard
